@@ -19,6 +19,7 @@ void process_image_callback(const sensor_msgs::Image img)
 {
 
     int white_pixel = 255;
+    ROS_INFO("Start of for-loops");
 
     // TODO: Loop through each pixel in the image and check if there's a bright white one
     // Then, identify if this pixel falls in the left, mid, or right side of the image
@@ -27,12 +28,15 @@ void process_image_callback(const sensor_msgs::Image img)
 	for (int i = 0; i < img.height * img.step; i+=img.step) {
         	for (int j = 0; i < img.step; j++) {
 			if (img.data[i + j] == white_pixel){
+                                ROS_INFO("White pixel found");
 				if (j < (img.step * 1/3)) {
 					drive_robot(0.0, 0.5);
 				} else if (j > (img.step * 2/3)) {
 					drive_robot(0.5, 0.0);
-				} else {
+				} else if ((j > (img.step * 1/3)) && (j < (img.step * 2/3))) {
 					drive_robot(0.0, -0.5);
+				} else {
+					drive_robot(0.0, 0.0);
 				}
 			}
 		}
@@ -43,13 +47,17 @@ int main(int argc, char** argv)
 {
     // Initialize the process_image node and create a handle to it
     ros::init(argc, argv, "process_image");
+    ROS_INFO("node initialized");
+
     ros::NodeHandle n;
 
     // Define a client service capable of requesting services from command_robot
     client = n.serviceClient<ball_chaser::DriveToTarget>("/ball_chaser/command_robot");
+    ROS_INFO("client defined");
 
     // Subscribe to /camera/rgb/image_raw topic to read the image data inside the process_image_callback function
     ros::Subscriber sub1 = n.subscribe("/camera/rgb/image_raw", 10, process_image_callback);
+    ROS_INFO("subscribed to the image_raw topic");
 
     // Handle ROS communication events
     ros::spin();
