@@ -8,10 +8,11 @@ ros::ServiceClient client;
 // This function calls the command_robot service to drive the robot in the specified direction
 void drive_robot(float lin_x, float ang_z)
 {
+    ROS_INFO("Drive bot function called");
     // TODO: Request a service and pass the velocities to it to drive the robot
-	ball_chaser::DriveToTarget srv;
-	srv.request.linear_x = lin_x;
-	srv.request.angular_z = ang_z;
+    ball_chaser::DriveToTarget srv;
+    srv.request.linear_x = lin_x;
+    srv.request.angular_z = ang_z;
 }
 
 // This callback function continuously executes and reads the image data
@@ -28,14 +29,18 @@ void process_image_callback(const sensor_msgs::Image img)
 	for (int i = 0; i < img.height * img.step; i+=img.step) {
         	for (int j = 0; i < img.step; j++) {
 			if (img.data[i + j] == white_pixel){
-                                ROS_INFO("White pixel found");
+                                //ROS_INFO("White pixel found");
 				if (j < (img.step * 1/3)) {
+					ROS_INFO("drive left called");
 					drive_robot(0.0, 0.5);
 				} else if (j > (img.step * 2/3)) {
+					ROS_INFO("drive forward called");
 					drive_robot(0.5, 0.0);
 				} else if ((j > (img.step * 1/3)) && (j < (img.step * 2/3))) {
+					ROS_INFO("drive right called");
 					drive_robot(0.0, -0.5);
 				} else {
+					ROS_INFO("stop driving called");
 					drive_robot(0.0, 0.0);
 				}
 			}
@@ -60,6 +65,7 @@ int main(int argc, char** argv)
     ROS_INFO("subscribed to the image_raw topic");
 
     // Handle ROS communication events
+    ROS_INFO("ros spin started");
     ros::spin();
 
     return 0;
