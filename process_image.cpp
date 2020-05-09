@@ -13,6 +13,10 @@ void drive_robot(float lin_x, float ang_z)
     ball_chaser::DriveToTarget srv;
     srv.request.linear_x = lin_x;
     srv.request.angular_z = ang_z;
+
+    if (!client.call(srv)) {
+	ROS_ERROR("failed to call service");	
+    }
 }
 
 // This callback function continuously executes and reads the image data
@@ -33,15 +37,19 @@ void process_image_callback(const sensor_msgs::Image img)
 				if (j < (img.step * 1/3)) {
 					ROS_INFO("drive left called");
 					drive_robot(0.0, 0.5);
+					break;
 				} else if (j > (img.step * 2/3)) {
 					ROS_INFO("drive forward called");
-					drive_robot(0.5, 0.0);
+					drive_robot(0.0, -0.5);
+					break;
 				} else if ((j > (img.step * 1/3)) && (j < (img.step * 2/3))) {
 					ROS_INFO("drive right called");
-					drive_robot(0.0, -0.5);
+					drive_robot(0.5, 0.0);
+					break;
 				} else {
 					ROS_INFO("stop driving called");
 					drive_robot(0.0, 0.0);
+					break;
 				}
 			}
 		}
