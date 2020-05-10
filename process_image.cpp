@@ -8,7 +8,7 @@ ros::ServiceClient client;
 // This function calls the command_robot service to drive the robot in the specified direction
 void drive_robot(float lin_x, float ang_z)
 {
-    ROS_INFO("Drive bot function called");
+    //ROS_INFO("Drive bot function called");
     // TODO: Request a service and pass the velocities to it to drive the robot
     ball_chaser::DriveToTarget srv;
     srv.request.linear_x = lin_x;
@@ -24,56 +24,56 @@ void process_image_callback(const sensor_msgs::Image img)
 {
 
     int white_pixel = 255;
-    ROS_INFO("Start of for-loops");
+    ROS_INFO("Starting for-loop");
+    //ROS_INFO("size of image %1.2f height %1.2f step", (float)img.height, (float)img.step);
 
     // TODO: Loop through each pixel in the image and check if there's a bright white one
     // Then, identify if this pixel falls in the left, mid, or right side of the image
     // Depending on the white ball position, call the drive_bot function and pass velocities to it
     // Request a stop when there's no white ball seen by the camera
-	for (int i = 0; i < img.height * img.step; i+=img.step) {
-        	for (int j = 0; i < img.step; j++) {
-			if (img.data[i + j] == white_pixel){
-                                //ROS_INFO("White pixel found");
-				if (j < (img.step * 1/3)) {
-					ROS_INFO("drive left called");
-					drive_robot(0.0, 0.5);
-					break;
-				} else if (j > (img.step * 2/3)) {
-					ROS_INFO("drive forward called");
-					drive_robot(0.0, -0.5);
-					break;
-				} else if ((j > (img.step * 1/3)) && (j < (img.step * 2/3))) {
-					ROS_INFO("drive right called");
-					drive_robot(0.5, 0.0);
-					break;
-				} else {
-					ROS_INFO("stop driving called");
-					drive_robot(0.0, 0.0);
-					break;
-				}
+	for (int i = 0; i < img.height * img.step; i++) {
+		ROS_INFO("Pixel value: %1.2f, pixel number %1.2f", (float)img.data[i], (float)i);
+		if (img.data[i] == white_pixel)
+		{
+			int row_ = i % img.step; 				
+			float column_ = row_ / (img.step / 3);
+			
+			if (column_ < 1) {
+				ROS_INFO("turn left called");
+				drive_robot(0.0, 0.5);
+				break;
+			} else if (column_ > 2 || row_ == 0) {
+				ROS_INFO("turn right called");
+				drive_robot(0.0, -0.5);
+				break;
+			} else {
+				ROS_INFO("drive forward called");
+				drive_robot(0.5, 0.0);
+				break;
 			}
 		}
-    }
+    		drive_robot(0.0, 0.0);
+    	}
 }
 
 int main(int argc, char** argv)
 {
     // Initialize the process_image node and create a handle to it
     ros::init(argc, argv, "process_image");
-    ROS_INFO("node initialized");
+    //ROS_INFO("node initialized");
 
     ros::NodeHandle n;
 
     // Define a client service capable of requesting services from command_robot
     client = n.serviceClient<ball_chaser::DriveToTarget>("/ball_chaser/command_robot");
-    ROS_INFO("client defined");
+    //ROS_INFO("client defined");
 
     // Subscribe to /camera/rgb/image_raw topic to read the image data inside the process_image_callback function
     ros::Subscriber sub1 = n.subscribe("/camera/rgb/image_raw", 10, process_image_callback);
-    ROS_INFO("subscribed to the image_raw topic");
+    //ROS_INFO("subscribed to the image_raw topic");
 
     // Handle ROS communication events
-    ROS_INFO("ros spin started");
+    //ROS_INFO("ros spin started");
     ros::spin();
 
     return 0;
